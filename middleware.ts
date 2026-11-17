@@ -1,11 +1,12 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-import { SESSION_COOKIE } from "@/lib/auth";
-
-export async function POST() {
-  const cookieStore = cookies();
-  cookieStore.delete(SESSION_COOKIE);
-
-  return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"));
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const session = request.cookies.get("exam_session")?.value;
+  if (["/admin", "/guru", "/siswa"].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) && !session) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+  return NextResponse.next();
 }
+
+export const config = { matcher: ["/admin/:path*", "/guru/:path*", "/siswa/:path*"] };

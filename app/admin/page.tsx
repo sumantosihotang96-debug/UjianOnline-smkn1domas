@@ -1,52 +1,8 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { getStats } from "@/lib/seed";
 
-import { readSessionCookie } from "@/lib/auth";
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = readSessionCookie(cookies().get("exam_session")?.value);
-
-  if (!session || session.role !== "admin") {
-    redirect("/login");
-  }
-
-  const links = [
-    { href: "/admin", label: "Dashboard" },
-    { href: "/admin/siswa", label: "Siswa" },
-    { href: "/admin/guru", label: "Guru" },
-    { href: "/admin/kelas", label: "Kelas" },
-    { href: "/admin/mata-pelajaran", label: "Mata Pelajaran" },
-  ];
-
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-50">
-      <aside className="fixed inset-y-0 left-0 w-72 border-r border-slate-800 bg-slate-900/90 p-5 backdrop-blur">
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-[0.25em] text-sky-400">SMKN 1 Domas</p>
-          <h1 className="mt-2 text-2xl font-bold">Admin Panel</h1>
-        </div>
-
-        <nav className="space-y-2">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="block rounded-xl border border-slate-800 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 transition hover:border-sky-500 hover:text-white"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        <form action="/api/logout" method="POST" className="mt-8">
-          <button className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-slate-700">
-            Logout
-          </button>
-        </form>
-      </aside>
-
-      <main className="ml-72 p-6">{children}</main>
-    </div>
-  );
+export default function AdminDashboardPage() {
+  const stats = getStats();
+  const cards = [["Siswa", stats.totalSiswa, "/admin/siswa"], ["Guru", stats.totalGuru, "/admin/guru"], ["Kelas", stats.totalKelas, "/admin/kelas"], ["Mata pelajaran", stats.totalMapel, "/admin/mata-pelajaran"]] as const;
+  return <div className="space-y-6"><header className="rounded-2xl border border-slate-800 bg-slate-900 p-6"><p className="text-sm uppercase tracking-widest text-sky-400">Ringkasan</p><h2 className="mt-2 text-3xl font-bold">Dashboard Admin</h2><p className="mt-2 text-slate-400">Kelola data sekolah dan persiapan ujian.</p></header><section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{cards.map(([label, count, href]) => <Link key={label} href={href} className="rounded-2xl border border-slate-800 bg-slate-900 p-5 hover:border-sky-500"><p className="text-sm text-slate-400">{label}</p><p className="mt-2 text-3xl font-bold text-sky-400">{count}</p><p className="mt-3 text-xs text-slate-500">Buka data →</p></Link>)}</section><p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">Data CRUD yang ditambahkan dari browser saat ini disimpan di penyimpanan lokal browser. Sinkronisasi Turso akan menjadi tahap integrasi berikutnya.</p></div>;
 }

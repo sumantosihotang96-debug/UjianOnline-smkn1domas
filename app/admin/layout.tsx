@@ -1,119 +1,18 @@
-import { hashPassword } from "./auth";
+import { cookies } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { readSessionCookie } from "@/lib/auth";
 
-export type RoleSeed = {
-  id: number;
-  name: "admin" | "guru" | "siswa";
-  description: string;
-};
-
-export type SeedUser = {
-  id: number;
-  username: string;
-  passwordHash: string;
-  fullName: string;
-  role: "admin" | "guru" | "siswa";
-  email: string;
-  status: "active" | "inactive";
-};
-
-export const rolesSeed: RoleSeed[] = [
-  { id: 1, name: "admin", description: "Administrator sistem" },
-  { id: 2, name: "guru", description: "Pengajar dan pembuat soal" },
-  { id: 3, name: "siswa", description: "Peserta ujian" },
+const links = [
+  ["/admin", "Dashboard"],
+  ["/admin/siswa", "Siswa"],
+  ["/admin/guru", "Guru"],
+  ["/admin/kelas", "Kelas"],
+  ["/admin/mata-pelajaran", "Mata Pelajaran"],
 ];
 
-export const usersSeed: SeedUser[] = [
-  {
-    id: 1,
-    username: "admin",
-    passwordHash: hashPassword("admin123"),
-    fullName: "Admin SMKN 1 Domas",
-    role: "admin",
-    email: "admin@smkn1domas.sch.id",
-    status: "active",
-  },
-  {
-    id: 2,
-    username: "guru01",
-    passwordHash: hashPassword("guru123"),
-    fullName: "Bapak Rahmat",
-    role: "guru",
-    email: "guru01@smkn1domas.sch.id",
-    status: "active",
-  },
-  {
-    id: 3,
-    username: "siswa01",
-    passwordHash: hashPassword("siswa123"),
-    fullName: "Rina Siswa",
-    role: "siswa",
-    email: "siswa01@smkn1domas.sch.id",
-    status: "active",
-  },
-  {
-    id: 4,
-    username: "siswa02",
-    passwordHash: hashPassword("siswa123"),
-    fullName: "Dewi Siswa",
-    role: "siswa",
-    email: "siswa02@smkn1domas.sch.id",
-    status: "active",
-  },
-  {
-    id: 5,
-    username: "guru02",
-    passwordHash: hashPassword("guru123"),
-    fullName: "Ibu Ningsih",
-    role: "guru",
-    email: "guru02@smkn1domas.sch.id",
-    status: "active",
-  },
-];
-
-export const classesSeed = [
-  { id: 1, name: "XI RPL 1", description: "Kelas Rekayasa Perangkat Lunak" },
-  { id: 2, name: "XI TKJ 1", description: "Kelas Teknik Komputer Jaringan" },
-  { id: 3, name: "XII MPLB 1", description: "Kelas Manajemen Perkantoran" },
-  { id: 4, name: "XII TBSM 1", description: "Kelas Teknik Bisnis Sepeda Motor" },
-];
-
-export const subjectsSeed = [
-  { id: 1, name: "Matematika", description: "Pelajaran Matematika" },
-  { id: 2, name: "Bahasa Indonesia", description: "Pelajaran Bahasa Indonesia" },
-  { id: 3, name: "Produktif", description: "Pelajaran Produktif" },
-  { id: 4, name: "Pendidikan Agama", description: "Pelajaran agama dan etika" },
-];
-
-export function findUserByUsername(username: string) {
-  return usersSeed.find((user) => user.username.toLowerCase() === username.toLowerCase()) ?? null;
-}
-
-export function loginWithCredentials(username: string, password: string) {
-  const user = findUserByUsername(username);
-
-  if (!user) {
-    return null;
-  }
-
-  if (user.passwordHash !== hashPassword(password)) {
-    return null;
-  }
-
-  return {
-    id: user.id,
-    username: user.username,
-    fullName: user.fullName,
-    role: user.role,
-    email: user.email,
-    status: user.status,
-  };
-}
-
-export function getStats() {
-  return {
-    totalSiswa: usersSeed.filter((user) => user.role === "siswa").length,
-    totalGuru: usersSeed.filter((user) => user.role === "guru").length,
-    totalKelas: classesSeed.length,
-    totalMapel: subjectsSeed.length,
-  };
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = readSessionCookie(cookies().get("exam_session")?.value);
+  if (!session || session.role !== "admin") redirect("/login");
+  return <div className="min-h-screen bg-slate-950 text-slate-50"><aside className="border-b border-slate-800 bg-slate-900 p-4 md:fixed md:inset-y-0 md:w-64 md:border-b-0 md:border-r md:p-6"><p className="text-xs uppercase tracking-[.2em] text-sky-400">SMKN 1 Domas</p><h1 className="mb-5 mt-2 text-2xl font-bold">Admin Panel</h1><nav className="flex flex-wrap gap-2 md:flex-col">{links.map(([href, label]) => <Link className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:border-sky-500" key={href} href={href}>{label}</Link>)}</nav><form action="/api/logout" method="POST" className="mt-5"><button className="rounded-lg bg-slate-800 px-3 py-2 text-sm">Keluar ({session.username})</button></form></aside><main className="p-4 md:ml-64 md:p-8">{children}</main></div>;
 }
