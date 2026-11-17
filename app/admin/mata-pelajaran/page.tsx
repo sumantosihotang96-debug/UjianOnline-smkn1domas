@@ -1,0 +1,42 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+import { readSessionCookie } from "@/lib/auth";
+import { classesSeed } from "@/lib/seed";
+
+export default function KelasAdminPage() {
+  const session = readSessionCookie(cookies().get("exam_session")?.value);
+
+  if (!session || session.role !== "admin") {
+    redirect("/login");
+  }
+
+  return (
+    <div className="space-y-6">
+      <header className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <h1 className="text-3xl font-bold">Data Kelas</h1>
+      </header>
+
+      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+        <table className="min-w-full text-left text-sm">
+          <thead className="bg-slate-800 text-slate-200">
+            <tr>
+              <th className="px-4 py-3">ID</th>
+              <th className="px-4 py-3">Nama Kelas</th>
+              <th className="px-4 py-3">Deskripsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {classesSeed.map((kelas) => (
+              <tr key={kelas.id} className="border-t border-slate-800">
+                <td className="px-4 py-3">{kelas.id}</td>
+                <td className="px-4 py-3">{kelas.name}</td>
+                <td className="px-4 py-3 text-slate-300">{kelas.description}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
