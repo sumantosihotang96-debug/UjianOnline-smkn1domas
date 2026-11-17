@@ -2,15 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { readSessionCookie } from "@/lib/auth";
-
-const links = [
-  ["/admin", "Dashboard"],
-  ["/admin/siswa", "Siswa"],
-  ["/admin/guru", "Guru"],
-  ["/admin/kelas", "Kelas"],
-  ["/admin/mata-pelajaran", "Mata Pelajaran"],
-];
-
+const links = [["/admin", "Dashboard"], ["/admin/siswa", "Siswa"], ["/admin/guru", "Guru"], ["/admin/kelas", "Kelas"], ["/admin/mata-pelajaran", "Mata Pelajaran"], ["/admin/ujian", "Ujian"]];
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = readSessionCookie(cookies().get("exam_session")?.value);
   if (!session || session.role !== "admin") redirect("/login");
